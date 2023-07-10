@@ -119,7 +119,8 @@ spec:
             - -c
             - /probe/ready-probe.sh
           initialDelaySeconds: 60
-          timeoutSeconds: 5
+          timeoutSeconds: 15
+          periodSeconds: 120
         volumeMounts:
         - name: cassandra-probe-config
           mountPath: /probe
