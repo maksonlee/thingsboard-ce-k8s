@@ -85,13 +85,16 @@ spec:
               path:  tb-mqtt-transport.conf
             - key: logback
               path:  logback.xml
+        - name: tb-mqtt-config
+          secret:
+            secretName: ingress-tls
       containers:
       - name: server
         imagePullPolicy: Always
         image: thingsboard/tb-mqtt-transport:3.5.1
         ports:
-        - containerPort: 1883
-          name: mqtt
+        - containerPort: 8883
+          name: mqtts
         env:
         - name: TB_SERVICE_ID
           valueFrom:
@@ -99,17 +102,21 @@ spec:
               fieldPath: metadata.name
         - name: TB_QUEUE_TYPE
           value: "kafka"
-        - name: MQTT_BIND_ADDRESS
-          value: "0.0.0.0"
-        - name: MQTT_BIND_PORT
-          value: "1883"
-        - name: MQTT_TIMEOUT
-          value: "10000"
         - name: TB_KAFKA_SERVERS
           value: "tb-kafka:9092"
+        - name: MQTT_SSL_ENABLED
+          value: "true"
+        - name: MQTT_SSL_CREDENTIALS_TYPE
+          value: "PEM"
+        - name: MQTT_SSL_PEM_CERT
+          value: "/ssl-config/tls.crt"
+        - name: MQTT_SSL_PEM_KEY
+          value: "/ssl-config/tls.key"
         volumeMounts:
           - mountPath: /config
             name: tb-mqtt-transport-config
+          - mountPath: /ssl-config
+            name: tb-mqtt-config
         readinessProbe:
           periodSeconds: 20
           tcpSocket:
@@ -139,8 +146,8 @@ spec:
   selector:
     app: tb-mqtt-transport
   ports:
-  - port: 1883
-    name: mqtt
+  - port: 8883
+    name: mqtts
 ---
 apiVersion: apps/v1
 kind: StatefulSet
